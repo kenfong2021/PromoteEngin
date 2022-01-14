@@ -1,0 +1,20 @@
+[
+  {
+    "item": "a|a|a",
+    "OriginPrice": 50,
+    "PromotionType": "F",
+    "Param": 130
+  },
+  {
+    "item": "b|b",
+    "OriginPrice": 60,
+    "PromotionType": "F",
+    "Param": 45
+  },
+  {
+    "item": "c|d",
+    "OriginPrice": 35,
+    "PromotionType": "F",
+    "Param": 30
+  }
+]
