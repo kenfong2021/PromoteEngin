@@ -18,10 +18,13 @@ namespace caTest
             {
                 var promoteList = new List<Promotion>();
                 var productList = new List<Product>();
+                
                 decimal result = 0;
 
-                productList = getInput();
-                promoteList = getPromotionList();
+                getObjectListFromJson(promoteList, "PromoteList.json");
+                getObjectListFromJson(productList, "ProductList.json");
+                getInput(productList);
+                
                 result = calculateResult(productList, promoteList);
                 Console.WriteLine(result);
             }
@@ -36,30 +39,21 @@ namespace caTest
             decimal result = 0;
             foreach (var r in promotionRule)
             {
-                var itemlist = r.item.Split("|");
-                Array.Sort(itemlist);
+ 
                 result = result + calculate(r, productList);
-                //while (FitPromote(itemlist, productList))
-                //{
-                //    for (int i = 0; i < r.item.Length; i++)
-                //    {
-                //        var item = productList.Find(n => n.name == r.item[i].ToString());
-                //        productList.Remove(item);
-                //    }
 
-                //    result += r.FinalPrice;
-                //}
             }
 
-            if (productList.Count > 0)
+            foreach (var a in productList)
             {
-                result = result + productList.Sum(n => n.price);
+                result = result + (a.price * a.amount);
             }
 
+         
             return result;
         }
 
-        public void getJson<T>(List<T> result,string filePath)
+        public void getObjectListFromJson<T>(List<T> result,string filePath)
         {
  
 
@@ -97,14 +91,14 @@ namespace caTest
             
         }
 
-        public List<Promotion> getPromotionList()
-        {
-            List<Promotion> resultList = new List<Promotion>();
+        //public List<T> getPromotionList()
+        //{
+        //    List<T> resultList = new List<T>();
 
-            getJson(resultList,"PromoteList.json");
+        //    getJson(resultList,"PromoteList.json");
  
-            return resultList;
-        }
+        //    return resultList;
+        //}
 
         public void InsertItemToList<T>(List<T> List, int num, T item)
         {
@@ -116,12 +110,11 @@ namespace caTest
         }
 
 
-        public List<Product> getInput()
+        public void getInput(List<Product> productCategory)
         {
             List<Product> resultList = new List<Product>();
 
-            List<Product> productCategory = new List<Product>();
-            getJson(productCategory,"ProductList.json");
+
 
             foreach (var t in productCategory)
             {
@@ -132,12 +125,13 @@ namespace caTest
                     Console.WriteLine($"Enter no. of product {t.name}:");
                     no = Console.ReadLine();
                 }
+                t.amount = number;
+                //productCategory.Add(new Product(t.name, t.price, number));
 
-                InsertItemToList(resultList, number, new Product(t.name, t.price));
+                //InsertItemToList(resultList, number, new Product(t.name, t.price));
  
             }
-             
-            return resultList;
+ 
 
         }
 
@@ -148,7 +142,7 @@ namespace caTest
             var ToBeRemovedList = new Dictionary<string, int>();
 
             Array.Sort(itemlist);
-
+            //get the promotion rule item list, e.g: 'a',3
             foreach (var a in itemlist)
             {
                 if (dict.ContainsKey(a))
@@ -161,32 +155,37 @@ namespace caTest
                 }
             }
 
+
+
+            //loop the rule item list, calculate the list of item to be removed in product list"
             foreach (var a in dict)
             {
-                var item = productlist.FindAll(n => n.name == a.Key);
+                var item = productlist.Find(n => n.name == a.Key);
 
-                if (item.Count == 0)
+                if (item.amount == 0)
                 {
                     return 0;
                 }
 
-                ToBeRemovedList.Add(a.Key, item.Count/a.Value);
+                ToBeRemovedList.Add(a.Key, item.amount/a.Value);
             }
+            //we have to choose the minimum value of item because the number of the promotion price can be applied will depend on it
+            //for example: a = 5, b = 2 ,rule = ab,
+            //the number of the promotion can be applied = number of b in product list (2) / the number of b in the rule (1) == 2
+            var RemovedKeyValue = ToBeRemovedList.OrderBy(n => n.Value).FirstOrDefault();
 
-            var amount = ToBeRemovedList.OrderBy(n => n.Value).FirstOrDefault().Value;
-
-            
-
-            foreach (var a in ToBeRemovedList)
+            foreach (var a in productlist)
             {
-                for (int k = 0; k < amount * dict[a.Key]; k++)
+                if (a.amount >0 && ToBeRemovedList.ContainsKey(a.name))
                 {
-                    var item = productlist.Find(n => n.name == a.Key);
-                    productlist.Remove(item);
+                    a.amount = a.amount - (RemovedKeyValue.Value * dict[RemovedKeyValue.Key]);  
                 }
+                
             }
 
-            return rule.FinalPrice * amount;
+         
+
+            return rule.FinalPrice * RemovedKeyValue.Value;
 
         }
 

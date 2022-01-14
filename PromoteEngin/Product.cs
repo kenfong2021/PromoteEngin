@@ -38,11 +38,14 @@ namespace caTest
     {
         public string name { get; set; }
         public decimal price { get; set; }
+        public int amount { get; set; }
 
-        public Product(string Name, decimal Price)
+
+        public Product(string Name, decimal Price,int Amount)
         {
             name = Name;
             price = Price;
+            amount = Amount;
         }
     }
 }
